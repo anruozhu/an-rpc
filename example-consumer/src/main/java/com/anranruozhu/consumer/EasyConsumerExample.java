@@ -2,6 +2,7 @@ package com.anranruozhu.consumer;
 
 import com.anranruozhu.common.model.User;
 import com.anranruozhu.common.service.UserService;
+import com.anranruozhu.proxy.ServiceProxyFactory;
 
 /**
  * @author anranruozhu
@@ -11,7 +12,10 @@ import com.anranruozhu.common.service.UserService;
  **/
 public class EasyConsumerExample {
     public static void main(String[] args) {
-        UserService userService=new UserServiceProxy();
+        //动态代理
+        UserService userService = ServiceProxyFactory.getProxy(UserService.class);
+        //静态代理
+        //UserService userService=new UserServiceProxy();
         User user=new User();
         user.setName("anranruozhu");
         //调用服务进行消费
