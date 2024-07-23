@@ -43,7 +43,7 @@ public class ServiceProxy implements InvocationHandler {
           //todo 注意，这里地址被反编码了（需要使用注册中心发现机制解决）
           try( HttpResponse httpResponse= HttpRequest.post("http://localhost:8080")
                   .body(bodyBytes)
-                  .execute();) {
+                  .execute()) {
               byte[] result=httpResponse.bodyBytes();
               //反序列化
               RPCResponse rpcResponse=serializer.deserialize(result, RPCResponse.class);

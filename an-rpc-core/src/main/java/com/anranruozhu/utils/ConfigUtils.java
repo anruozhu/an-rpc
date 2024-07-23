@@ -1,5 +1,7 @@
 package com.anranruozhu.utils;
 
+import cn.hutool.core.io.resource.ClassPathResource;
+import cn.hutool.core.io.resource.Resource;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.dialect.Props;
 
@@ -41,4 +43,6 @@ public class ConfigUtils {
         Props props=new Props(configFileBuilder.toString());
         return  props.toBean(tClass,prefix);
     }
+
+
 }
