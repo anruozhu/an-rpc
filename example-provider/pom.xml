@@ -17,9 +17,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
+<!--        <dependency>-->
+<!--            <groupId>com.anranruozhu</groupId>-->
+<!--            <artifactId>an-rpc-easy</artifactId>-->
+<!--            <version>1.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.anranruozhu</groupId>
-            <artifactId>an-rpc-easy</artifactId>
+            <artifactId>an-rpc-core</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
