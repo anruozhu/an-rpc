@@ -1,11 +1,13 @@
 package com.anranruozhu.server;
 
 
+import com.anranruozhu.RpcApplication;
 import com.anranruozhu.model.RPCRequest;
 import com.anranruozhu.model.RPCResponse;
 import com.anranruozhu.registry.LocalRegistry;
 import com.anranruozhu.serializer.JdkSerializer;
 import com.anranruozhu.serializer.Serializer;
+import com.anranruozhu.serializer.SerializerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
@@ -21,10 +23,12 @@ import java.lang.reflect.Method;
  * @create 2024/7/21 下午5:28
  **/
 public class HTTPServeHandler implements Handler<HttpServerRequest> {
+
+
     @Override
     public void handle(HttpServerRequest request) {
-        // 指定序列化器
-        final Serializer serializer=new JdkSerializer();
+        // 指定序列化器，由配置文件进行注入
+        final Serializer serializer= SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
 
         // 记录日志
         System.out.println("Received HTTP request:"+request.method()+" "+ request.uri());
