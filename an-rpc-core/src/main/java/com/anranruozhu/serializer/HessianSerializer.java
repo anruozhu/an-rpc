@@ -3,6 +3,8 @@ package com.anranruozhu.serializer;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
+import com.caucho.hessian.io.HessianInput;
+import com.caucho.hessian.io.HessianOutput;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,7 +20,7 @@ public class HessianSerializer implements Serializer{
     @Override
     public <T> byte[] serialize(T obj) throws IOException {
         ByteArrayOutputStream Bos=new ByteArrayOutputStream();
-        Hessian2Output ho=new Hessian2Output(Bos);
+        HessianOutput ho=new HessianOutput(Bos);
         ho.writeObject(obj);
         return Bos.toByteArray();
     }
@@ -26,7 +28,7 @@ public class HessianSerializer implements Serializer{
     @Override
     public <T> T deserialize(byte[] data, Class<T> clazz) throws IOException {
         ByteArrayInputStream Bis=new ByteArrayInputStream(data);
-        Hessian2Input hi=new Hessian2Input(Bis);
+        HessianInput hi=new HessianInput(Bis);
         return (T)hi.readObject(clazz);
     }
 }

@@ -2,9 +2,7 @@ package com.anranruozhu.consumer;
 
 import com.anranruozhu.common.model.User;
 import com.anranruozhu.common.service.UserService;
-import com.anranruozhu.config.RpcConfig;
 import com.anranruozhu.proxy.ServiceProxyFactory;
-import com.anranruozhu.utils.ConfigUtils;
 
 /**
  * @author anranruozhu
@@ -26,7 +24,7 @@ public class ConsumerExample {
         } else {
             System.out.println("user is null");
         }
-        long number=userService.getNumber();
+        short number = userService.getNumber();
         System.out.println(number);
     }
 }

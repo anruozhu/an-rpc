@@ -1,6 +1,7 @@
 package com.anranruozhu.serializer;
 
 import cn.hutool.json.serialize.JSONSerializer;
+import com.anranruozhu.spi.SpiLoader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,20 +14,14 @@ import java.util.Map;
  **/
 public class SerializerFactory {
 
-    /**
-     * 序列化映射（用于实现单例）
-     */
-    private static final Map<String,Serializer> serializers = new HashMap<String,Serializer>(){{
-        put(SerializerKeys.JDK, new JdkSerializer());
-        put(SerializerKeys.KRYO, new KryoSerializer());
-        put(SerializerKeys.HESSIAN,new HessianSerializer());
-        put(SerializerKeys.JSON,new JsonSerializer());
-    }};
+    static{
+        SpiLoader.load(Serializer.class);
+    }
 
     /**
      * 默认序列化器
      */
-    private   static final Serializer DEFAULT_SERIALIZER = serializers.get(SerializerKeys.JDK);
+    private   static final Serializer DEFAULT_SERIALIZER = new JdkSerializer();
 
     /**
      * 获取实例
@@ -35,6 +30,6 @@ public class SerializerFactory {
      * @return
      */
     public static Serializer getInstance(String Key){
-        return serializers.getOrDefault(Key,DEFAULT_SERIALIZER);
+        return SpiLoader.getInstance(Serializer.class,Key);
     }
 }

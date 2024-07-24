@@ -14,8 +14,6 @@ public class EasyConsumerExample {
     public static void main(String[] args) {
         //动态代理
         UserService userService = ServiceProxyFactory.getProxy(UserService.class);
-        //静态代理
-        //UserService userService=new UserServiceProxy();
         User user=new User();
         user.setName("anranruozhu");
         //调用服务进行消费

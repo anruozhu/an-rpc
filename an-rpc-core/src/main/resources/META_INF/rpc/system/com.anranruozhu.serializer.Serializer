@@ -1,0 +1,4 @@
+json=com.anranruozhu.serializer.JsonSerializer
+kryo=com.anranruozhu.serializer.KryoSerializer
+jdk=com.anranruozhu.serializer.JdkSerializer
+hessian=com.anranruozhu.serializer.HessianSerializer

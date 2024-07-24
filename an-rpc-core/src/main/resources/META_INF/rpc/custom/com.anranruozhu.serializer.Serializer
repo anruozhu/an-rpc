@@ -1,0 +1,2 @@
+jdk=com.anranruozhu.serializer.JdkSerializer
+hessian=com.anranruozhu.serializer.HessianSerializer

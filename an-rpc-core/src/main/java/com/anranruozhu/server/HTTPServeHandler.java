@@ -5,7 +5,6 @@ import com.anranruozhu.RpcApplication;
 import com.anranruozhu.model.RPCRequest;
 import com.anranruozhu.model.RPCResponse;
 import com.anranruozhu.registry.LocalRegistry;
-import com.anranruozhu.serializer.JdkSerializer;
 import com.anranruozhu.serializer.Serializer;
 import com.anranruozhu.serializer.SerializerFactory;
 import io.vertx.core.Handler;
