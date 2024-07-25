@@ -2,6 +2,7 @@ package com.anranruozhu.spi;
 
 import cn.hutool.core.io.resource.ResourceUtil;
 import com.anranruozhu.serializer.Serializer;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @create 2024/7/24 上午11:05
  **/
 @Slf4j
+@Data
 public class SpiLoader {
 
     /**
@@ -94,7 +96,7 @@ public class SpiLoader {
                 instanceCache.put(implClassName,implClass.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
                 String errorMsg=String.format("%s 类实例化失败",implClassName);
-                throw new RuntimeException(e);
+                throw new RuntimeException(errorMsg,e);
             }
         }
         return (T) instanceCache.get(implClassName);
@@ -109,6 +111,7 @@ public class SpiLoader {
     public static Map<String,Class<?>> load(Class<?> loadClass){
         log.info("加载类型为 {} 的SPI",loadClass.getName());
         //扫描路径，用户自定义的SPI优先级高于系统SPI
+        //通过先后关系来进行实现优先级，后读入的配置会覆盖最开始的配置
         Map<String,Class<?>> keyClassMap=new HashMap<>();
         for(String scanDir:SCAN_DIRS){
             List<URL> resources= ResourceUtil.getResources(scanDir+loadClass.getName());

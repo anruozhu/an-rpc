@@ -13,10 +13,8 @@ import java.util.Map;
  * @create 2024/7/24 上午9:58
  **/
 public class SerializerFactory {
+    private static volatile SpiLoader spiLoader;
 
-    static{
-        SpiLoader.load(Serializer.class);
-    }
 
     /**
      * 默认序列化器
@@ -30,6 +28,14 @@ public class SerializerFactory {
      * @return
      */
     public static Serializer getInstance(String Key){
+        if(spiLoader==null){
+            synchronized (SpiLoader.class){
+                if(spiLoader==null){
+                    spiLoader = new SpiLoader();
+                    SpiLoader.load(Serializer.class);
+                }
+            }
+        }
         return SpiLoader.getInstance(Serializer.class,Key);
     }
 }

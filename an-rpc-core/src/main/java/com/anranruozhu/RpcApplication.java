@@ -1,7 +1,10 @@
 package com.anranruozhu;
 
+import com.anranruozhu.config.RegistryConfig;
 import com.anranruozhu.config.RpcConfig;
 import com.anranruozhu.constant.RpcConstant;
+import com.anranruozhu.registry.Registry;
+import com.anranruozhu.registry.RegistryFactory;
 import com.anranruozhu.utils.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 /**
@@ -23,6 +26,11 @@ public class RpcApplication {
     public static void init(RpcConfig newRpcConfig) {
         rpcConfig=newRpcConfig;
         log.info("RpcApplication init,config={}",newRpcConfig.toString());
+        //注册中心初始化
+        RegistryConfig registryConfig=rpcConfig.getRegistryConfig();
+        Registry registry= RegistryFactory.getInstance(registryConfig.getRegistry());
+        registry.init(registryConfig);
+        log.info("registry init， config = {}",registryConfig);
     }
 
     /**

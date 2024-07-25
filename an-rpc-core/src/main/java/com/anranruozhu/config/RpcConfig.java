@@ -1,6 +1,5 @@
 package com.anranruozhu.config;
 
-import com.anranruozhu.serializer.Serializer;
 import com.anranruozhu.serializer.SerializerKeys;
 import lombok.Data;
 
@@ -23,7 +22,7 @@ public class RpcConfig {
     /**
      * 服务主机地址
      */
-    private String serverHost="localhost";
+    private String serverHost="1.94.191.";
     /**
      * 服务端口
      */
@@ -38,4 +37,9 @@ public class RpcConfig {
      * 序列化方式
      */
     private String serializer= SerializerKeys.JDK;
+
+    /**
+     * 注册中心配置
+     */
+    private RegistryConfig registryConfig=new RegistryConfig();
 }
