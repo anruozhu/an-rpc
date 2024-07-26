@@ -1,5 +1,8 @@
 package com.anranruozhu.registry;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.cron.CronUtil;
+import cn.hutool.cron.task.Task;
 import cn.hutool.json.JSONUtil;
 import com.anranruozhu.config.RegistryConfig;
 import com.anranruozhu.model.ServiceMetaInfo;
@@ -12,7 +15,9 @@ import io.etcd.jetcd.options.PutOption;
 import javax.management.StandardMBean;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -31,6 +36,12 @@ public class EtcdRegistry implements Registry{
 
     private final String ETCD_ROOT_PATH ="/rpc/";
 
+    /**
+     * 本机注册的节点 key 集合（用于维护续期）
+     */
+    private  final static Set<String> localRegisterNodeKeySet=new HashSet<>();
+
+
     @Override
     public void init(RegistryConfig registryConfig) {
     client=Client.builder()
@@ -38,6 +49,7 @@ public class EtcdRegistry implements Registry{
             .connectTimeout(Duration.ofMillis(registryConfig.getTimeout()))
             .build();
     kvClient=client.getKVClient();
+    heartBeat();
     }
 
     @Override
@@ -56,11 +68,15 @@ public class EtcdRegistry implements Registry{
         //将键值对与租约关联起来，并设置过期时间
         PutOption putOption=PutOption.builder().withLeaseId(leaseId).build();
         kvClient.put(key, value, putOption).get();
+        //将节点信息添加至本地缓存
+        localRegisterNodeKeySet.add(registerKey);
     }
 
     @Override
     public void unRegister(ServiceMetaInfo serviceMetaInfo) {
-        kvClient.delete(ByteSequence.from(ETCD_ROOT_PATH+serviceMetaInfo.getServiceNodeKey(), StandardCharsets.UTF_8));
+        String registerKey=ETCD_ROOT_PATH+serviceMetaInfo.getServiceKey();
+        kvClient.delete(ByteSequence.from(registerKey, StandardCharsets.UTF_8));
+        localRegisterNodeKeySet.remove(registerKey);
     }
 
     @Override
@@ -94,6 +110,17 @@ public class EtcdRegistry implements Registry{
     @Override
     public void destory() {
         System.out.println("当前节点下线");
+
+        //下线节点
+        //遍历本节点所有key
+        for (String key : localRegisterNodeKeySet){
+            try {
+                kvClient.delete(ByteSequence.from(key,StandardCharsets.UTF_8)).get();
+            } catch (Exception e) {
+                throw new RuntimeException(key+"节点下线失败",e);
+            }
+        }
+
         //释放资源
         if(kvClient!=null) {
             kvClient.close();
@@ -101,5 +128,36 @@ public class EtcdRegistry implements Registry{
         if(client!=null) {
             client.close();
         }
+    }
+
+    @Override
+    public void heartBeat() {
+        // 10秒续期一次
+        CronUtil.schedule("*/10 * * * * *",new Task() {
+            @Override
+            public void execute() {
+                for(String registerKey:localRegisterNodeKeySet){
+                    try {
+                        List<KeyValue> keyValues=kvClient.get(ByteSequence.from(registerKey,StandardCharsets.UTF_8))
+                                .get()
+                                .getKvs();
+                        //如果该节点已过期（需要重启节点才可以重新注册）
+                        if(CollUtil.isEmpty(keyValues)){
+                            continue;
+                        }
+                        //节点未过期，重新注册=>重新续期
+                        KeyValue keyValue=keyValues.get(0);
+                        String value=keyValue.getValue().toString(StandardCharsets.UTF_8);
+                        ServiceMetaInfo serviceMetaInfo=JSONUtil.toBean(value, ServiceMetaInfo.class);
+                        register(serviceMetaInfo);
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(registerKey+"续约失败",e);
+                    }
+                }
+            }
+        });
+        CronUtil.setMatchSecond(true);
+        CronUtil.start();
     }
 }

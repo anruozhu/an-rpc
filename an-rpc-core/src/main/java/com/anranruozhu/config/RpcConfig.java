@@ -22,7 +22,7 @@ public class RpcConfig {
     /**
      * 服务主机地址
      */
-    private String serverHost="1.94.191.";
+    private String serverHost="localhost";
     /**
      * 服务端口
      */
