@@ -1,26 +1,25 @@
 package com.anranruozhu.registry;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.cron.CronUtil;
 import cn.hutool.cron.task.Task;
 import cn.hutool.json.JSONUtil;
 import com.anranruozhu.config.RegistryConfig;
 import com.anranruozhu.model.ServiceMetaInfo;
 import io.etcd.jetcd.*;
-import io.etcd.jetcd.kv.GetResponse;
-import io.etcd.jetcd.op.Op;
+import io.etcd.jetcd.api.WatchResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.watch.WatchEvent;
 
-import javax.management.StandardMBean;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
 
 /**
  * @author anranruozhu
@@ -41,7 +40,15 @@ public class EtcdRegistry implements Registry{
      */
     private  final static Set<String> localRegisterNodeKeySet=new HashSet<>();
 
+    /**
+     * 注册中心服务缓存
+     */
+    private final RegistryServiceCache registryServiceCache = new RegistryServiceCache();
 
+    /**
+     *  正在监听的key集合
+     */
+    private final Set<String> watchingKeySet=new ConcurrentHashSet<>();
     @Override
     public void init(RegistryConfig registryConfig) {
     client=Client.builder()
@@ -81,9 +88,13 @@ public class EtcdRegistry implements Registry{
 
     @Override
     public List<ServiceMetaInfo> serviceDiscovery(String serviceKey) {
-        //前缀搜索，结尾记得加"/"
-        String searchPrefix=ETCD_ROOT_PATH+serviceKey;
+        //优先从缓存中获取服务
+        List<ServiceMetaInfo> cachedServiceMetaInfoList =registryServiceCache.readCache();
+        if(cachedServiceMetaInfoList!=null){
+            return cachedServiceMetaInfoList;
+        }
 
+        String searchPrefix=ETCD_ROOT_PATH+serviceKey;
 
         try {
             //前缀查询
@@ -95,20 +106,25 @@ public class EtcdRegistry implements Registry{
                     .getKvs();
 
             //解析服务信息
-            return keyValues.stream()
+            List<ServiceMetaInfo> serviceMetaInfoList=keyValues.stream()
                     .map(keyValue -> {
+                        String key=keyValue.getKey().toString(StandardCharsets.UTF_8);
+                        //监听 key 的变化
+                        watch(key);
                         String value=keyValue.getValue().toString(StandardCharsets.UTF_8);
-                        return JSONUtil.toBean(value, ServiceMetaInfo.class);
+                        return JSONUtil.toBean(value,ServiceMetaInfo.class);
                     })
                     .collect(Collectors.toList());
-
+            //写入服务缓存
+            registryServiceCache.writeCache(serviceMetaInfoList);
+            return serviceMetaInfoList;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("获取服务列表失败",e);
         }
     }
 
     @Override
-    public void destory() {
+    public void destroy() {
         System.out.println("当前节点下线");
 
         //下线节点
@@ -127,6 +143,29 @@ public class EtcdRegistry implements Registry{
         }
         if(client!=null) {
             client.close();
+        }
+    }
+
+    @Override
+    public void watch(String serviceKey) {
+        Watch watchClient=client.getWatchClient();
+        //之前未被监听，开启监听
+        boolean newWatch=watchingKeySet.add(serviceKey);
+        if(newWatch){
+            watchClient.watch(ByteSequence.from(serviceKey,StandardCharsets.UTF_8), WatchResponse->{
+              for (WatchEvent event : WatchResponse.getEvents()){
+                 switch (event.getEventType()){
+                 //key删除时触发
+                     case DELETE:
+                         //清理注册服务缓存
+                         registryServiceCache.clearCache();
+                         break;
+                     case PUT:
+                     default:
+                         break;
+                 }
+              }
+            });
         }
     }
 

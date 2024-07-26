@@ -47,7 +47,13 @@ public interface Registry {
     /**
      * 服务销毁
      */
-    void destory();
+    void destroy();
+
+    /**
+     * 监听（消费端）
+     * @param serviceKey
+     */
+    void watch(String serviceKey);
 
     /**
      * 心跳检测（服务端）

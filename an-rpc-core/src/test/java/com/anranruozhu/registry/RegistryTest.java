@@ -59,6 +59,7 @@ public class RegistryTest {
 
         @Test
         public void serviceDiscovery() {
+
             ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
             serviceMetaInfo.setServiceName("myService");
             serviceMetaInfo.setServiceVersion("1.0");
