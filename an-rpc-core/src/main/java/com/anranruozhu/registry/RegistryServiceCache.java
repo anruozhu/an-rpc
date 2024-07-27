@@ -3,6 +3,8 @@ package com.anranruozhu.registry;
 import com.anranruozhu.model.ServiceMetaInfo;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author anranruozhu
@@ -15,15 +17,18 @@ public class RegistryServiceCache {
     /**
      * 服务缓存
      */
-    List<ServiceMetaInfo> serviceCache;
+    Map<String,List<ServiceMetaInfo>> serviceCache=new ConcurrentHashMap<>();
 
     /**
      *  写缓存
      *
      * @param newServiceCache
      */
-    void writeCache(List<ServiceMetaInfo> newServiceCache) {
-        this.serviceCache=newServiceCache;
+    void writeCache(String service,List<ServiceMetaInfo> newServiceCache) {
+        if(serviceCache.containsKey(service)){
+            serviceCache.get(service).addAll(newServiceCache);
+        }
+        serviceCache.put(service,newServiceCache);
     }
 
     /**
@@ -31,12 +36,12 @@ public class RegistryServiceCache {
      *
      * @return
      */
-    List<ServiceMetaInfo> readCache(){
-        return this.serviceCache;
+    List<ServiceMetaInfo> readCache(String service){
+        return serviceCache.get(service);
     }
 
-    void clearCache(){
-        this.serviceCache.clear();
+    void clearCache(String serviceNode){
+        this.serviceCache.remove(serviceNode);
     }
 
 

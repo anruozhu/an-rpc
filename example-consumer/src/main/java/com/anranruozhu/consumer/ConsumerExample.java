@@ -19,16 +19,10 @@ public class ConsumerExample {
         user.setName("anranruozhu");
         //调用服务进行消费
         User newUser=userService.getUser(user);
-        user.setName("anranruozhu1");
-        newUser=userService.getUser(user);
-        user.setName("anranruozhu2");
-        newUser=userService.getUser(user);
         if(newUser!=null) {
             System.out.println(newUser.getName());
         } else {
             System.out.println("user is null");
         }
-        short number = userService.getNumber();
-        System.out.println(number);
     }
 }
