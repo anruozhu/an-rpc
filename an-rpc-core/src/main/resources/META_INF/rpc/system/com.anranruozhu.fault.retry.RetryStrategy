@@ -1,0 +1,2 @@
+no=com.anranruozhu.fault.retry.NoRetryStrategy
+fixedInterval=com.anranruozhu.fault.retry.FixedIntervalRetryStrategy

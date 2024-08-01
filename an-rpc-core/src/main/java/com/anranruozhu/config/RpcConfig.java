@@ -1,5 +1,7 @@
 package com.anranruozhu.config;
 
+import com.anranruozhu.fault.retry.RetryStrategyKeys;
+import com.anranruozhu.loadbalancer.LoadBalancerKeys;
 import com.anranruozhu.serializer.SerializerKeys;
 import lombok.Data;
 
@@ -42,4 +44,13 @@ public class RpcConfig {
      * 注册中心配置
      */
     private RegistryConfig registryConfig=new RegistryConfig();
+
+    /**
+     * 负载均衡器
+     */
+    private String loadBalancer= LoadBalancerKeys.ROUND_ROBIN;
+    /**
+     * 重试策略
+     */
+    private String retryStrategy= RetryStrategyKeys.FIXED_INTERVAL;
 }
